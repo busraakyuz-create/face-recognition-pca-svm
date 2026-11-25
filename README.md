@@ -15,6 +15,15 @@ Classifying faces of 7 public figures from the **Labeled Faces in the Wild (LFW)
 4. **Speed vs. accuracy** – compared KNN on raw pixels vs. PCA features: similar accuracy (~50%), but prediction was ~40× faster on the PCA features.
 5. **Full ML pipeline** – tested scaling, class balancing and hyperparameter tuning step by step.
 
+### Eigenfaces
+The first principal components capture the overall face shape and lighting:
+
+![First 5 principal components](images/eigenfaces_top.png)
+
+The last components mostly contain pixel-level noise, which PCA discards:
+
+![Last 5 principal components](images/eigenfaces_last.png)
+
 ## Results (3-fold CV accuracy)
 
 | Model | Accuracy |
