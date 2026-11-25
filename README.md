@@ -1,35 +1,36 @@
-# PCA ve SVM ile Uçtan Uca Yüz Tanıma Projesi 🚀
+# Face Recognition with PCA + SVM
 
-Bu proje, **Labeled Faces in the Wild (LFW)** veri setini kullanarak, yüksek boyutlu görüntü verileri üzerinde makine öğrenmesi optimizasyon süreçlerini uygulamalı olarak ele almaktadır. Projede, boyut indirgeme yöntemi olan **PCA (Principal Component Analysis)** ve sınıflandırma algoritması olan **SVM (Support Vector Machines)** entegre bir pipeline mimarisinde bir araya getirilmiştir.
+Classifying faces of 7 public figures from the **Labeled Faces in the Wild (LFW)** dataset by compressing images with **PCA** and training an **SVM** classifier inside a scikit-learn pipeline.
 
----
+**Result:** accuracy improved from a **41.2%** majority-class baseline to **76.7%** with a class-balanced PCA + SVC pipeline tuned with GridSearchCV (3-fold cross-validation).
 
-## 🛠️ Kullanılan Teknolojiler ve Kütüphaneler
-* **Python 3.x**
-* **Scikit-Learn** (PCA, SVC, GridSearchCV, StandardScaler, Pipeline)
-* **Numpy** & **Matplotlib** (Veri manipülasyonu ve görselleştirme)
+## Dataset
+- 1,288 grayscale images, 50 × 37 pixels → 1,850 features per image
+- 7 classes (people with at least 70 photos), strongly imbalanced (largest class 41%, smallest ~5.5%)
 
----
+## Approach
+1. **Compression with PCA** – projected each image from 1,850 pixels onto 150 principal components (~12× fewer features) and reconstructed images with `inverse_transform` to check the information loss.
+2. **Eigenfaces** – visualised the mean face and the highest- and lowest-variance components to see what PCA keeps and what it discards as noise.
+3. **Choosing the number of components** – 36 components already explain 80% of the variance; the best value for classification (grid search over 50 / 100 / 200 / 300) was **100**.
+4. **Speed vs. accuracy** – compared KNN on raw pixels vs. PCA features: similar accuracy (~50%), but prediction was ~40× faster on the PCA features.
+5. **Full ML pipeline** – tested scaling, class balancing and hyperparameter tuning step by step.
 
-## 📊 Proje Aşamaları ve Metodoloji
+## Results (3-fold CV accuracy)
 
-### 1. Görüntü Yeniden Yapılandırma (Image Reconstruction)
-Her biri 1850 pikselden oluşan düzleştirilmiş yüz görüntüleri, PCA ile 150 temel bileşene sıkıştırılmıştır. Bilgi kaybının minimum düzeyde olduğunu doğrulamak amacıyla, sıkıştırılan veriler geri açılarak orijinal görüntülerle yan yana kıyaslanmıştır.
+| Model | Accuracy |
+|---|---|
+| Baseline (most frequent class) | 41.15% |
+| PCA (100) + SVC | 64.60% |
+| StandardScaler + PCA + SVC | 68.40% |
+| PCA + SVC (`class_weight='balanced'`) | 67.08% |
+| **PCA + balanced SVC, tuned with GridSearchCV** (kernel, C, gamma) | **76.71%** |
 
-### 2. Eigenfaces (Ana Bileşen Analizi)
-Veri setindeki maksimum varyansı temsil eden ilk 5 ana bileşen (en önemli yüz hatları/ışık yönleri) ile varyansı en düşük olan son 5 ana bileşen (gürültü/karıncalanma) görselleştirilerek PCA'in çalışma mantığı incelenmiştir.
+## Tech
+Python · scikit-learn (PCA, SVC, KNN, Pipeline, GridSearchCV, StandardScaler) · NumPy · pandas · Matplotlib
 
-### 3. Optimum Bileşen Sayısının Belirlenmesi
-Kümülatif açıklanan varyans oranı (Cumulative Explained Variance) grafiği çizilerek, verideki bilgi çeşitliliğinin en az %80 ve %95'ini korumak için gereken minimum bileşen sayıları matematiksel olarak doğrulanmıştır.
+## Files
+- `face_recognition.ipynb` – main analysis
+- `warmup_pca.ipynb` – PCA warm-up exercise
+- `tests/` – automated checks
 
-### 4. Pipeline Yapısı ve Model Optimizasyonu
-Veri sızıntısını (Data Leakage) önlemek amacıyla tüm süreç `scikit-learn` Pipeline mimarisine taşınmıştır:
-* **Ölçeklendirme (Scaling):** `StandardScaler` kullanılarak piksel değerleri normalize edilmiş ve mesafe hassasiyeti olan SVM modelinin kararlılığı artırılmıştır.
-* **Sınıf Dengeleme (Class Imbalance):** Veri setindeki dengesiz dağılım (bazı ünlülerin çok fazla, bazılarının çok az fotoğrafı olması durumu), SVC modelindeki `class_weight='balanced'` parametresiyle optimize edilmiştir.
-* **Hiperparametre Ayarlama (Hyperparameter Tuning):** `GridSearchCV` ile en iyi `C`, `gamma` ve `kernel` kombinasyonları 3-katlı (3-fold) çapraz doğrulama ile taranarak nihai modele ulaşılmıştır.
-
----
-
-## 📈 Sonuçlar ve Kazanımlar
-* **Hız ve Hesaplama Maliyeti:** 1850 öznitelikten 150 bileşene düşülmesine rağmen modelin eğitim süreleri ciddi oranda kısalmış, işlem maliyeti düşürülmüştür.
-* **Gürültü Filtreleme:** PCA'in düşük varyanslı pikselleri (gürültüleri) ayıklaması sayesinde, modelin test verisi üzerindeki genel genelleme (generalization) yeteneği artırılmıştır.
+Built during the Workintech Data Science & Machine Learning program.
